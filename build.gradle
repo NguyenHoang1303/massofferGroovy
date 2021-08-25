@@ -1,0 +1,31 @@
+plugins {
+    id 'groovy'
+}
+
+group 'org.example'
+version '1.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testImplementation 'org.spockframework:spock-core:2.0-groovy-3.0'
+    implementation 'org.codehaus.groovy:groovy-all:3.0.8'
+
+    //vertX
+    implementation 'io.vertx:vertx-web:4.1.2'
+    implementation 'io.vertx:vertx-core:4.1.2'
+    //Monggod
+    implementation group: 'org.mongodb', name: 'mongo-java-driver', version: '3.12.8'
+    //ActiveMQ
+    implementation 'org.apache.activemq:activemq-client:5.16.2'
+    implementation 'org.apache.activemq:activemq-pool:5.16.2'
+
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.0'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.7.0'
+}
+
+test {
+    useJUnitPlatform()
+}
