@@ -1,77 +1,53 @@
 package model
 
 
-import com.mongodb.MongoException
-import com.mongodb.client.FindIterable
 import com.mongodb.client.MongoCollection
-import com.mongodb.client.result.DeleteResult
-import com.mongodb.client.result.UpdateResult
-import entity.Product
 import org.bson.Document
+import org.bson.types.ObjectId
 import util.MongoService
 
 class ProductModel {
 
-    boolean save(Document document) {
+    Document save(Document document) {
         MongoService mongoService = new MongoService()
         MongoCollection<Document> collection = mongoService.mongoConnect()
-        if (collection == null) {
-            return false
-        }
-        if (document == null) {
-            return false
-        }
-        try {
-            collection.insertOne(document)
-            return true
-        } catch (NullPointerException ignored) {
-            println("unable to connect to MongoDB ${collection.namespace}, ${ignored}")
-        }
-        return false
+        collection.insertOne(document)
+        String id = document.getObjectId("_id").toHexString()
+        Document queryId = new Document("_id", new ObjectId(id))
+        Document currentSave = collection.find(queryId).first()
+        return currentSave
     }
 
-    List<Product> getAll() {
+    List<Document> getAll() {
         MongoService mongoService = new MongoService()
         MongoCollection<Document> collection = mongoService.mongoConnect()
-        if (collection == null) {
-            return null
-        }
-        List<Product> list = new ArrayList<>()
-        FindIterable<Document> result = collection.find()
-        Iterator iterator = result.iterator()
-        while (iterator.hasNext()){
-            Document item = iterator.next()
-            String id = item.get("_id").toString()
-            String name = item.get("name")
-            String description = item.get("description")
-            String price = item.get("price")
-            Product product = new Product(id, name, description, price)
-            list.add(product)
-        }
-        return list
+        List<Document> listDoc = collection.find().collect()
+        return listDoc
     }
 
-    boolean update(Document queryById, Document document) {
+    Document update(Document queryById, Document document) {
         MongoService mongoService = new MongoService()
         MongoCollection<Document> collection = mongoService.mongoConnect()
-        if (collection == null) return false
         Document update = new Document()
         update.append("\$set", document)
-        UpdateResult result = collection.updateOne(queryById, update)
-        if (result.getModifiedCount() > 0) return true
-        return false
+        Document result = collection.findOneAndUpdate(queryById, update)
+        return result
     }
 
-    boolean delete(Document document) {
+    Document delete(String id) {
+        Document document = new Document()
+        document.append("_id", new ObjectId(id))
         MongoService mongoService = new MongoService()
         MongoCollection<Document> collection = mongoService.mongoConnect()
-        if (collection == null) return false
-        try {
-            DeleteResult result = collection.deleteOne(document)
-            if (result.getDeletedCount() > 0) return true
-        } catch (MongoException me) {
-            println("Unable to delete due to an error: " + me)
-        }
-        return false
+        Document result = collection.findOneAndDelete(document)
+        return result
+    }
+
+    Document findById(String id) {
+        Document queryId = new Document("_id", new ObjectId(id))
+        MongoService mongoService = new MongoService()
+        MongoCollection<Document> collection = mongoService.mongoConnect()
+        Document document = collection.find(queryId).first()
+        return document
     }
 }

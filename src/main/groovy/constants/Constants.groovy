@@ -17,7 +17,7 @@ class Constants {
     public static final String CONTENT_TYPE = "Content-Type"
 
     //AticeMQ
-    public static final String ACTIVE_MQ_QUEUE = "MyQueue"
+    public static final String ACTIVE_MY_QUEUE = "MyQueue"
     public static final String ACTIVE_MQ_USERNAME = "admin"
     public static final String ACTIVE_MQ_PASSWORD = "admin"
     public static final String ACTIVE_MQ_URL = "tcp://localhost:61616"

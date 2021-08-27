@@ -1,7 +1,6 @@
 package activemq
 
 import constants.Constants
-import io.vertx.ext.web.RoutingContext
 import org.apache.activemq.ActiveMQConnectionFactory
 import util.APIResponse
 import util.ActiveMQService
@@ -15,9 +14,10 @@ import javax.jms.Session
 import javax.jms.TextMessage
 
 class Consumer {
-    void receiveMessage(RoutingContext routingContext) {
+    String receiveMessage() {
         // Establish a connection for the consumer.
         // Note: Consumers should not use PooledConnectionFactory.
+        String result = null
         ActiveMQService activeMQService = new ActiveMQService()
         ActiveMQConnectionFactory connectionFactory = activeMQService.activemqConnect()
         APIResponse apiResponse = new APIResponse()
@@ -29,7 +29,7 @@ class Consumer {
             Session consumerSession = consumerConnection.createSession(false, Session.AUTO_ACKNOWLEDGE)
 
             // Create a queue named "MyQueue".
-            Destination consumerDestination = consumerSession.createQueue(Constants.ACTIVE_MQ_QUEUE)
+            Destination consumerDestination = consumerSession.createQueue(Constants.ACTIVE_MY_QUEUE)
 
             // Create a message consumer from the session to the queue.
             MessageConsumer consumer = consumerSession.createConsumer(consumerDestination)
@@ -39,19 +39,15 @@ class Consumer {
 
             // Receive the message when it arrives.
             TextMessage consumerTextMessage = (TextMessage) consumerMessage
-            System.out.println("Message received: " + consumerTextMessage.getText())
-            apiResponse.setResult(consumerTextMessage.getText())
-            apiResponse.setStatusNumber(Constants.STATUS_OK)
+            result = consumerTextMessage.getText()
 
             // Clean up the consumer.
             consumer.close()
             consumerSession.close()
             consumerConnection.close()
         } catch (JMSException e) {
-            apiResponse.setResult(Constants.MESSAGE_FAIL)
-            apiResponse.setStatusNumber(Constants.STATUS_FAIL)
             e.printStackTrace()
         }
-        apiResponse.handlerApiRespone(routingContext)
+        return result
     }
 }
