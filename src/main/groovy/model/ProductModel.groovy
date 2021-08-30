@@ -1,53 +1,54 @@
 package model
 
-
+import com.mongodb.client.FindIterable
 import com.mongodb.client.MongoCollection
+import com.mongodb.client.model.FindOneAndUpdateOptions
+import com.mongodb.client.model.ReturnDocument
+import entity.Product
 import org.bson.Document
 import org.bson.types.ObjectId
+import util.Convert
 import util.MongoService
 
 class ProductModel {
+    Convert convert = new Convert()
+    MongoService mongoService = new MongoService()
 
-    Document save(Document document) {
-        MongoService mongoService = new MongoService()
+    Product save(Document document) {
         MongoCollection<Document> collection = mongoService.mongoConnect()
         collection.insertOne(document)
         String id = document.getObjectId("_id").toHexString()
-        Document queryId = new Document("_id", new ObjectId(id))
-        Document currentSave = collection.find(queryId).first()
-        return currentSave
+        Document queryId = ["_id": new ObjectId(id)]
+        Document docSave = collection.find(queryId).first()
+        return convert.handlerDocToProduct(docSave)
     }
 
-    List<Document> getAll() {
-        MongoService mongoService = new MongoService()
+    List<Product> getAll() {
         MongoCollection<Document> collection = mongoService.mongoConnect()
-        List<Document> listDoc = collection.find().collect()
-        return listDoc
+        List<Document> listDoc = new ArrayList<>()
+        collection.find().into(listDoc)
+        List<Product> productList = listDoc.collect { convert.handlerDocToProduct(it) }
+
+        return productList
     }
 
-    Document update(Document queryById, Document document) {
-        MongoService mongoService = new MongoService()
+    Product update(Document queryById, Document document) {
         MongoCollection<Document> collection = mongoService.mongoConnect()
-        Document update = new Document()
-        update.append("\$set", document)
-        Document result = collection.findOneAndUpdate(queryById, update)
-        return result
+        Document update = new Document('$set', document)
+        Document result = collection.findOneAndUpdate(queryById, update,
+                new FindOneAndUpdateOptions().returnDocument(ReturnDocument.AFTER))
+        return convert.handlerDocToProduct(result)
     }
 
-    Document delete(String id) {
-        Document document = new Document()
-        document.append("_id", new ObjectId(id))
-        MongoService mongoService = new MongoService()
+    Product delete(String id) {
         MongoCollection<Document> collection = mongoService.mongoConnect()
-        Document result = collection.findOneAndDelete(document)
-        return result
+        Document result = collection.findOneAndDelete(new Document("_id", new ObjectId(id)))
+        return convert.handlerDocToProduct(result)
     }
 
-    Document findById(String id) {
-        Document queryId = new Document("_id", new ObjectId(id))
-        MongoService mongoService = new MongoService()
+    Product findById(String id) {
         MongoCollection<Document> collection = mongoService.mongoConnect()
-        Document document = collection.find(queryId).first()
-        return document
+        Document document = collection.find(new Document("_id", new ObjectId(id))).first()
+        return convert.handlerDocToProduct(document)
     }
 }

@@ -67,28 +67,17 @@ class RestApiProduct extends AbstractVerticle {
             apiResponse.handlerApiRespone(context)
         })
         router.post("/message/enqueue").handler(context -> {
-            String text = context.getBody().toString()
-            Producer producer = new Producer()
-            producer.sendMessage(text)
+            Document document = Document.parse(context.getBodyAsJson().toString())
+            Producer producer = new Producer(document)
+            producer.start()
             apiResponse.setResult("Sent message success!!")
             apiResponse.setStatusNumber(Constants.STATUS_OK)
             apiResponse.handlerApiRespone(context)
         })
-        router.post("/message/dequeue").handler(context -> {
+        router.get("/message/dequeue").handler(context -> {
             Consumer consumer = new Consumer()
-            String text = consumer.receiveMessage()
-            apiResponse.setResult(text)
-            apiResponse.setStatusNumber(Constants.STATUS_OK)
-            apiResponse.handlerApiRespone(context)
-        })
-
-        router.post("/message/queue").handler(context -> {
-            String text = context.getBody().toString()
-            ActiveMQ activeMQ = new ActiveMQ()
-            activeMQ.handlerAMQ(text)
-            apiResponse.setResult("Sent message success!!")
-            apiResponse.setStatusNumber(Constants.STATUS_OK)
-            apiResponse.handlerApiRespone(context)
+            String message = consumer.receiveMessage()
+            println("message ${message}")
         })
 
         vertx.createHttpServer().requestHandler(router)
