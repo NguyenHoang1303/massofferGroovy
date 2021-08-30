@@ -1,9 +1,10 @@
 package activemq
 
+import com.google.gson.Gson
 import constants.Constants
-import io.vertx.core.VertxException
+import controller.ProductController
 import org.apache.activemq.ActiveMQConnectionFactory
-import util.APIResponse
+import org.bson.Document
 import util.ActiveMQService
 
 import javax.jms.Connection
@@ -14,12 +15,44 @@ import javax.jms.MessageConsumer
 import javax.jms.Session
 import javax.jms.TextMessage
 
-class Consumer {
+class DataWorker extends Thread {
 
-    String receiveMessage() {
+    ProductController productController
+    String message
+    String result
+
+
+    DataWorker() {
+        productController = new ProductController()
+
+    }
+
+    @Override
+    void run() {
+        receiveMessage()
+    }
+
+    void handlerDataAMQ(String data) {
+        Document document = Document.parse(data)
+        String action = document.remove("action")
+        println(data)
+        switch (action) {
+            case Constants.MONGO_SAVE:
+                result = new Gson().toJson(productController.save(document))
+                break
+            case Constants.MONGO_UPDATE:
+                result = new Gson().toJson(productController.update(document))
+                break
+            case Constants.MONGO_DELETE:
+                String id = document.getString("_id")
+                result = new Gson().toJson(productController.delete(id))
+                break
+        }
+    }
+
+    void receiveMessage() {
         // Establish a connection for the consumer.
         // Note: Consumers should not use PooledConnectionFactory.
-        String result = null
         ActiveMQService activeMQService = new ActiveMQService()
         ActiveMQConnectionFactory connectionFactory = activeMQService.activemqConnect()
         try {
@@ -36,25 +69,20 @@ class Consumer {
             MessageConsumer consumer = consumerSession.createConsumer(consumerDestination)
 
             // Begin to wait for messages.
-            while (true){
+
+            while (true) {
                 Message consumerMessage = consumer.receive()
                 // Receive the message when it arrives.
                 TextMessage consumerTextMessage = (TextMessage) consumerMessage
                 if (consumerTextMessage == null) {
-//                    return result
                     continue
                 }
-                result = consumerTextMessage.getText()
-                println("result ${result}")
+                message = consumerTextMessage.getText()
+                handlerDataAMQ(message)
             }
-
             // Clean up the consumer.
-            consumer.close()
-            consumerSession.close()
-            consumerConnection.close()
         } catch (JMSException e) {
             e.printStackTrace()
         }
-        return result
     }
 }

@@ -7,7 +7,11 @@ import org.bson.Document
 import org.bson.types.ObjectId
 
 class ProductController {
-    ProductModel productModel = new ProductModel()
+    ProductModel productModel
+
+    ProductController() {
+        productModel = new ProductModel()
+    }
 
     Product save(Document document) {
         return productModel.save(document)
@@ -20,7 +24,7 @@ class ProductController {
 
     Product update(Document updateDocument) {
         String databaseId = updateDocument.remove("_id") as String
-        Document queryId = new Document(["_id": new ObjectId(databaseId)])
+        Document queryId = ["_id": new ObjectId(databaseId)]
         Product product = productModel.update(queryId, updateDocument)
         if (product == null) {
             return null

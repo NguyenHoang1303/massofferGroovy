@@ -7,6 +7,9 @@ class Constants {
     public static final String COLLECTION_NAME = "products"
     public static final String URI_MONGODB = "mongodb://localhost:27017"
     public  static final String DB_NAME = "test"
+    public static final String MONGO_SAVE = "save"
+    public static final String MONGO_DELETE = "delete"
+    public static final String MONGO_UPDATE = "upadate"
 
     //API Respone
     public static final String MESSAGE_FAIL = "fail!!"

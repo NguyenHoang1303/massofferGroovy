@@ -1,6 +1,6 @@
 package model
 
-import com.mongodb.client.FindIterable
+
 import com.mongodb.client.MongoCollection
 import com.mongodb.client.model.FindOneAndUpdateOptions
 import com.mongodb.client.model.ReturnDocument
@@ -11,8 +11,13 @@ import util.Convert
 import util.MongoService
 
 class ProductModel {
-    Convert convert = new Convert()
-    MongoService mongoService = new MongoService()
+    Convert convert
+    MongoService mongoService
+
+    ProductModel() {
+        convert = new Convert()
+        mongoService = new MongoService()
+    }
 
     Product save(Document document) {
         MongoCollection<Document> collection = mongoService.mongoConnect()
@@ -28,27 +33,26 @@ class ProductModel {
         List<Document> listDoc = new ArrayList<>()
         collection.find().into(listDoc)
         List<Product> productList = listDoc.collect { convert.handlerDocToProduct(it) }
-
         return productList
     }
 
     Product update(Document queryById, Document document) {
         MongoCollection<Document> collection = mongoService.mongoConnect()
-        Document update = new Document('$set', document)
-        Document result = collection.findOneAndUpdate(queryById, update,
-                new FindOneAndUpdateOptions().returnDocument(ReturnDocument.AFTER))
+        Document update = ['$set', document]
+        FindOneAndUpdateOptions options = new FindOneAndUpdateOptions().returnDocument(ReturnDocument.AFTER)
+        Document result = collection.findOneAndUpdate(queryById, update, options)
         return convert.handlerDocToProduct(result)
     }
 
     Product delete(String id) {
         MongoCollection<Document> collection = mongoService.mongoConnect()
-        Document result = collection.findOneAndDelete(new Document("_id", new ObjectId(id)))
+        Document result = collection.findOneAndDelete(["_id", new ObjectId(id)] as Document)
         return convert.handlerDocToProduct(result)
     }
 
     Product findById(String id) {
         MongoCollection<Document> collection = mongoService.mongoConnect()
-        Document document = collection.find(new Document("_id", new ObjectId(id))).first()
+        Document document = collection.find(["_id", new ObjectId(id)] as Document).first()
         return convert.handlerDocToProduct(document)
     }
 }

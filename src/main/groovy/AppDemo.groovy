@@ -1,3 +1,4 @@
+import activemq.DataWorker
 import controller.RestApiProduct
 import io.vertx.core.Vertx
 
@@ -12,6 +13,8 @@ class AppDemo {
                 println("fail ${result.cause()}")
             }
         })
+        DataWorker dataWorker = new DataWorker()
+        dataWorker.start()
     }
 
 }

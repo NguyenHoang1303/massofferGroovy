@@ -1,7 +1,6 @@
 package controller
 
-import activemq.ActiveMQ
-import activemq.Consumer
+
 import activemq.Producer
 import com.google.gson.Gson
 import constants.Constants
@@ -24,7 +23,9 @@ class RestApiProduct extends AbstractVerticle {
         router.post("/products/save").handler(context -> {
             Document document = Document.parse(context.getBodyAsJson().encode())
             Product product = productController.save(document)
-            if (product == null) apiResponse.handlerApiRespone(context)
+            if (product == null) {
+                apiResponse.handlerApiRespone(context)
+            }
             String result = new Gson().toJson(product)
             apiResponse.setResult(result)
             apiResponse.setStatusNumber(Constants.STATUS_OK)
@@ -33,7 +34,9 @@ class RestApiProduct extends AbstractVerticle {
 
         router.get("/products").handler(context -> {
             List<String> list = productController.getAll()
-            if (list == null) apiResponse.handlerApiRespone(context)
+            if (list == null) {
+                apiResponse.handlerApiRespone(context)
+            }
             apiResponse.setResult(list.toString())
             apiResponse.setStatusNumber(Constants.STATUS_OK)
             apiResponse.handlerApiRespone(context)
@@ -42,7 +45,9 @@ class RestApiProduct extends AbstractVerticle {
         router.get("/products/search").handler(context -> {
             String id = context.request().getParam("id")
             Product product = productController.findById(id)
-            if (product == null) apiResponse.handlerApiRespone(context)
+            if (product == null) {
+                apiResponse.handlerApiRespone(context)
+            }
             apiResponse.setResult(new Gson().toJson(product))
             apiResponse.setStatusNumber(Constants.STATUS_OK)
             apiResponse.handlerApiRespone(context)
@@ -52,7 +57,9 @@ class RestApiProduct extends AbstractVerticle {
         router.put("/products/update").handler(context -> {
             Document document = Document.parse(context.getBodyAsJson().toString())
             Product product = productController.update(document)
-            if (product == null) apiResponse.handlerApiRespone(context)
+            if (product == null) {
+                apiResponse.handlerApiRespone(context)
+            }
             apiResponse.setResult(new Gson().toJson(product))
             apiResponse.setStatusNumber(Constants.STATUS_OK)
             apiResponse.handlerApiRespone(context)
@@ -61,7 +68,9 @@ class RestApiProduct extends AbstractVerticle {
         router.delete("/products/delete").handler(context -> {
             String id = context.request().getParam("id")
             Product product = productController.delete(id)
-            if (product == null) apiResponse.handlerApiRespone(context)
+            if (product == null) {
+                apiResponse.handlerApiRespone(context)
+            }
             apiResponse.setResult(new Gson().toJson(product))
             apiResponse.setStatusNumber(Constants.STATUS_OK)
             apiResponse.handlerApiRespone(context)
@@ -70,15 +79,11 @@ class RestApiProduct extends AbstractVerticle {
             Document document = Document.parse(context.getBodyAsJson().toString())
             Producer producer = new Producer(document)
             producer.start()
-            apiResponse.setResult("Sent message success!!")
+            apiResponse.setResult(Constants.MESSAGE_SUCCESS)
             apiResponse.setStatusNumber(Constants.STATUS_OK)
             apiResponse.handlerApiRespone(context)
         })
-        router.get("/message/dequeue").handler(context -> {
-            Consumer consumer = new Consumer()
-            String message = consumer.receiveMessage()
-            println("message ${message}")
-        })
+
 
         vertx.createHttpServer().requestHandler(router)
                 .listen(Constants.SERVER_PORT, { result ->

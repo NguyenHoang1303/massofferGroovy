@@ -3,7 +3,6 @@ package activemq
 import constants.Constants
 import org.apache.activemq.ActiveMQConnectionFactory
 import org.bson.Document
-import util.APIResponse
 import util.ActiveMQService
 
 import javax.jms.*
@@ -47,9 +46,6 @@ class Producer extends Thread {
             System.out.println("Message sent.")
 
             // Clean up the producer.
-            producer.close()
-            producerSession.close()
-            producerConnection.close()
         } catch (JMSException e) {
             System.out.println("sent message fail")
             e.printStackTrace()
